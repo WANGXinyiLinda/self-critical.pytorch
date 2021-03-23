@@ -2,11 +2,11 @@ caption_model: transformer
 noamopt: true
 noamopt_warmup: 20000
 label_smoothing: 0.0
-input_json: data/cocotalk.json
-input_label_h5: data/cocotalk_label.h5
-input_att_dir: data/cocobu_att
+input_json: /home/xinyi_wang/self-critical.pytorch/data/cocotalk.json
+input_label_h5: /home/xinyi_wang/self-critical.pytorch/data/cocotalk_label.h5
+input_att_dir: /data2/xinyi_wang/ImageCaptioning/cocobu_att/
 seq_per_img: 5
-batch_size: 10
+batch_size: 32
 learning_rate: 0.0005
 
 # Notice: because I'm to lazy, I reuse the option name for RNNs to set the hyperparameters for transformer:
@@ -29,8 +29,10 @@ dropout: 0.1
 
 
 learning_rate_decay_start: 0
-scheduled_sampling_start: -1 
-save_checkpoint_every: 3000
+scheduled_sampling_start: -1
+checkpoint_path: /data2/xinyi_wang/ImageCaptioning/models/transformer_log_32/ 
+eval_out_dir: /data2/xinyi_wang/ImageCaptioning/models/transformer_log_32/eval_results/
+save_checkpoint_every: 1000
 language_eval: 1
 val_images_use: 5000
 max_epochs: 15

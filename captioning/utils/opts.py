@@ -37,6 +37,8 @@ def parse_opt():
                     """)
     parser.add_argument('--cached_tokens', type=str, default='coco-train-idxs',
                     help='Cached token file for calculating cider score during self critical training.')
+    parser.add_argument('--generated_cap', type=str, default='none',
+                    help='path to the json file containing generated (halucinated) captions')
 
     # Model settings
     parser.add_argument('--caption_model', type=str, default="show_tell",
@@ -199,6 +201,9 @@ def parse_opt():
     parser.add_argument('--sc_beam_size', type=int, default=1,
                     help='')
 
+    # Conterfactual loss
+    parser.add_argument('--ipm_alpha', type=float, default=0.1,
+                    help='weight for IPM regularizer')
 
     # For diversity evaluation during training
     add_diversity_opts(parser)
@@ -267,9 +272,9 @@ def add_eval_options(parser):
                     help='if > 0 then overrule, otherwise load from checkpoint.')
     parser.add_argument('--num_images', type=int, default=-1,
                     help='how many images to use when periodically evaluating the loss? (-1 = all)')
-    parser.add_argument('--language_eval', type=int, default=0,
+    parser.add_argument('--language_eval', type=int, default=1,
                     help='Evaluate language as well (1 = yes, 0 = no)? BLEU/CIDEr/METEOR/ROUGE_L? requires coco-caption code from Github.')
-    parser.add_argument('--dump_images', type=int, default=1,
+    parser.add_argument('--dump_images', type=int, default=0,
                     help='Dump images into vis/imgs folder for vis? (1=yes,0=no)')
     parser.add_argument('--dump_json', type=int, default=1,
                     help='Dump json with predictions into vis folder? (1=yes,0=no)')
@@ -299,6 +304,8 @@ def add_eval_options(parser):
                     help='if running on MSCOCO images, which split to use: val|test|train')
     parser.add_argument('--coco_json', type=str, default='', 
                     help='if nonempty then use this file in DataLoaderRaw (see docs there). Used only in MSCOCO test evaluation, where we have a specific json file of only test set images.')
+    parser.add_argument('--eval_out_dir', type=str, default='',
+                    help='path to the evaluation output')
     # misc
     parser.add_argument('--id', type=str, default='', 
                     help='an id identifying this run/job. used only if language_eval = 1 for appending to intermediate files')

@@ -124,6 +124,9 @@ def train(opt):
     dp_lw_model.train()
 
     # Start training
+    train_start_time = time.time()
+    num_train = len(loader.dataset.split_ix['train'])
+    num_iter = num_train / loader.batch_size
     try:
         while True:
             # Stop if reaching max epochs
@@ -188,16 +191,17 @@ def train(opt):
             optimizer.step()
             train_loss = loss.item()
             torch.cuda.synchronize()
-            end = time.time()
+            passed_time = (time.time() - train_start_time)/60
+            estimated_total_time = (passed_time/(iteration+1))*num_iter
             if struc_flag:
-                print("iter {} (epoch {}), train_loss = {:.3f}, lm_loss = {:.3f}, struc_loss = {:.3f}, time/batch = {:.3f}" \
-                    .format(iteration, epoch, train_loss, model_out['lm_loss'].mean().item(), model_out['struc_loss'].mean().item(), end - start))
+                print("iter {} (epoch {}), train_loss = {:.3f}, lm_loss = {:.3f}, struc_loss = {:.3f}, passed time/estimated total time = {:.3f}/{:.3f} min" \
+                    .format(iteration, epoch, train_loss, model_out['lm_loss'].mean().item(), model_out['struc_loss'].mean().item(), passed_time, estimated_total_time))
             elif not sc_flag:
-                print("iter {} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}" \
-                    .format(iteration, epoch, train_loss, end - start))
+                print("iter {} (epoch {}), train_loss = {:.3f}, passed time/estimated total time = {:.3f}/{:.3f} min" \
+                    .format(iteration, epoch, train_loss, passed_time, estimated_total_time))
             else:
-                print("iter {} (epoch {}), avg_reward = {:.3f}, time/batch = {:.3f}" \
-                    .format(iteration, epoch, model_out['reward'].mean(), end - start))
+                print("iter {} (epoch {}), avg_reward = {:.3f}, passed time/estimated total time = {:.3f}/{:.3f} min" \
+                    .format(iteration, epoch, model_out['reward'].mean(), passed_time, estimated_total_time))
 
             # Update the iteration and epoch
             iteration += 1

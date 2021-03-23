@@ -44,7 +44,7 @@ def getCOCO(dataset):
     return COCO(annFile)
 
 
-def language_eval(dataset, preds, preds_n, eval_kwargs, split):
+def language_eval(dataset, preds, preds_n, eval_kwargs, split, out_dir):
     model_id = eval_kwargs['id']
     eval_oracle = eval_kwargs.get('eval_oracle', 0)
     
@@ -69,7 +69,7 @@ def language_eval(dataset, preds, preds_n, eval_kwargs, split):
 
     # encoder.FLOAT_REPR = lambda o: format(o, '.3f')
 
-    cache_path = os.path.join('eval_results/', '.cache_'+ model_id + '_' + split + '.json')
+    cache_path = os.path.join(out_dir, '.cache_'+ model_id + '_' + split + '.json')
 
     coco = getCOCO(dataset)
     valids = coco.getImgIds()
@@ -103,7 +103,7 @@ def language_eval(dataset, preds, preds_n, eval_kwargs, split):
 
     if len(preds_n) > 0:
         from . import eval_multi
-        cache_path_n = os.path.join('eval_results/', '.cache_'+ model_id + '_' + split + '_n.json')
+        cache_path_n = os.path.join(out_dir, '.cache_'+ model_id + '_' + split + '_n.json')
         allspice = eval_multi.eval_allspice(dataset, preds_n, model_id, split)
         out.update(allspice['overall'])
         div_stats = eval_multi.eval_div_stats(dataset, preds_n, model_id, split)
@@ -119,7 +119,7 @@ def language_eval(dataset, preds, preds_n, eval_kwargs, split):
             json.dump({'allspice': allspice, 'div_stats': div_stats, 'oracle': oracle, 'self_cider': self_cider}, outfile)
         
     out['bad_count_rate'] = sum([count_bad(_['caption']) for _ in preds_filt]) / float(len(preds_filt))
-    outfile_path = os.path.join('eval_results/', model_id + '_' + split + '.json')
+    outfile_path = os.path.join(out_dir, model_id + '_' + split + '.json')
     with open(outfile_path, 'w') as outfile:
         json.dump({'overall': out, 'imgToEval': imgToEval}, outfile)
 
@@ -138,6 +138,7 @@ def eval_split(model, crit, loader, eval_kwargs={}):
     remove_bad_endings = eval_kwargs.get('remove_bad_endings', 0)
     os.environ["REMOVE_BAD_ENDINGS"] = str(remove_bad_endings) # Use this nasty way to make other code clean since it's a global configuration
     device = eval_kwargs.get('device', 'cuda')
+    out_dir = eval_kwargs.get('eval_out_dir', 'eval_results')
 
     # Make sure in the evaluation mode
     model.eval()
@@ -215,11 +216,11 @@ def eval_split(model, crit, loader, eval_kwargs={}):
     lang_stats = None
     if len(n_predictions) > 0 and 'perplexity' in n_predictions[0]:
         n_predictions = sorted(n_predictions, key=lambda x: x['perplexity'])
-    if not os.path.isdir('eval_results'):
-        os.mkdir('eval_results')
-    torch.save((predictions, n_predictions), os.path.join('eval_results/', '.saved_pred_'+ eval_kwargs['id'] + '_' + split + '.pth'))
+    if not os.path.isdir(out_dir):
+        os.mkdir(out_dir)
+    torch.save((predictions, n_predictions), os.path.join(out_dir, '.saved_pred_'+ eval_kwargs['id'] + '_' + split + '.pth'))
     if lang_eval == 1:
-        lang_stats = language_eval(dataset, predictions, n_predictions, eval_kwargs, split)
+        lang_stats = language_eval(dataset, predictions, n_predictions, eval_kwargs, split, out_dir)
 
     # Switch back to training mode
     model.train()
