@@ -1,5 +1,7 @@
 # An Image Captioning codebase
 
+This repo is part of the [CMLE](https://github.com/WANGXinyiLinda/CMLE) project.
+
 This is a codebase for image captioning research.
 
 It supports:
